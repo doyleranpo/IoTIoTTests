@@ -1,0 +1,92 @@
+/**
+***************************************************************************************************
+					#### Functions Description ####
+===================================================================================================
+(#)void setupShunyaInterfaces() 	:Initialize the shunya interface
+(#)void pinMode(pin, state)		:Setting up a pin as INPUT/OUTPUT
+(#)int digitalRead(pin)			:Reads the pinState as HIGH/LOW
+(#)digitalWrite(pin, vale)		:Sets the pinState as HIGH/LOW
+(#)void delayMicroseconds(us)	:Produces a delay equal to the value given(in us) 
+(#)int micros(us)				:Returns the time(in us) which have passed since the start of execution
+(#)serialPrintf					:Prints data to the serial port as ASCII text
+
+					### How to use ###
+===================================================================================================
+(#) Connect the hardware according to the circuit diagram
+(#) Run the following code and the distance of the object can be seen on the terminal
+
+***************************************************************************************************
+*/
+#include<stdio.h>
+#include<stdlib.h>
+#include<shunyaInterfaces.h>
+
+int trigger = 40;
+int echo = 38;
+
+unsigned long duration;
+int distance;
+
+void config()
+{
+	shunyaInterfacesSetup(); //Setting up shunyaOS interfaces
+	pinMode(trigger, OUTPUT); // Pin set as output
+	pinMode(echo, INPUT); //Pin set as input
+	//serialOpen(9600); //Starting serial communication
+}
+
+/*long pusle_duration()
+{
+	return (micros()-x);
+	//Returning the amount of time pulse remained high
+	/*Note: micros() returns time passed before it was invoked thus to calculate pulse duration
+	the value is stored in variable (x) and then once the pulse toggles the difference micros()-x
+	is returned*/
+}*/
+
+unsigned long read_pulse(int pin)
+{
+    static unsigned long rising_time;  // time of the rising edge
+    static int last_state;             // previous pin state
+    int state = digitalRead(pin);      // current pin state
+    unsigned long pulse_length = 0;    // default return value
+
+    // On rising edge: record current time.
+    if (last_state == LOW && state == HIGH) {
+        rising_time = micros();
+    }
+
+    // On falling edge: report pulse length.
+    if (last_state == HIGH && state == LOW) {
+        unsigned long falling_time = micros();
+        pulse_length = falling_time - rising_time;
+    }
+
+    last_state = state;
+    return pulse_length;
+}
+
+int main()
+{
+	config();
+	while(1)
+	{
+		//  Clears the trigger pin
+		digitalWrite(trigger,LOW)
+		delayMicroseconds(2);
+		//Set the trigger pin HIGH for 10 microseconds
+		digitalWrite(trigger, HIGH);
+		delayMicroseconds(10);
+		digitalWrite(trigger, LOW);
+		while(digitalRead(echo));
+		duration = read_pulse(echo);
+		printf("%d\n",duration);
+		//Calculating the distance
+		distance = ((0.034/2) * duration);
+		/*Note: The formula is calculated assuming the speed of sound as 340 m/s or 
+		0.034 cm/us. t = 2*s/v or s = t * 0.034/2 (in cm)*/
+		
+		//Prints value on the terminal
+		printf("Distance: %d",distance);
+	}
+}

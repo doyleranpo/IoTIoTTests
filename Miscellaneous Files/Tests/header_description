@@ -1,0 +1,14 @@
+/** 
+* @brief	Togglea any device attached to the trigger pin based on the sensor output
+* @param	trigger	acts as a switch to any device which needs to be toggled on sound detection
+*		int value
+*		button	is the sensor interface which acts as the control variable.
+*		int value
+*/
+/**
+* @brief	Configures pins attached to the sensor and the trigger
+* @param	trigger	acts as a switch to any device which needs to be toggled on sound detection
+*		int value
+*		button	is the sensor interface which acts as the control variable.
+*		int value
+*/

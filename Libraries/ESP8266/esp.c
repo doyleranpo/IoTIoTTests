@@ -77,9 +77,9 @@ void getIP(int fd){
 	delay(10);
 }
 
-void config(int fd){
+// void config(int fd){
 
-}
+// }
 
 void disconnectWiFi(int fd){
 	serialPrintf(fd,"AT+CWQAP\r\n");
@@ -106,13 +106,25 @@ void isWiFiConnected(int fd){
 }
 
 void setAutoConnect(int fd, int choice){
-	serialPrintf(fd,"AT+CWAUTOCONN=%d",choice);
+	serialPrintf(fd,"AT+CWAUTOCONN=%d\r\n",choice);
 	while (checkOK(fd) == 0);
 	delay(10);
 }
 void getMACAddress(int fd){
 	serialPrintf(fd,"AT+CIPSTAMAC?\r\n");
 	while( checkOK(fd) == 0;)
+}
+
+void beginSmartConfig(int fd){
+	serialPrintf(fd,"AT+CWSTARTSMART=3\r\n");
+	while (checkOk(fd) == 0);
+	delay(10);
+}
+
+void stopSmartConfig(int fd){
+	serialPrintf(fd,"AT+CWSTOPSMART\r\n");
+	while(checkOk(fd) == 0);
+	delay(10);
 }
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html

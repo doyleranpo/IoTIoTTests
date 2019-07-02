@@ -131,3 +131,16 @@ https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf
 https://arduino-esp8266.readthedocs.io/en/latest/libraries.html#wifi-esp8266wifi-library
  */
+
+/*
+	while(strncmp(temp,"+",1)!=0)
+	{
+		while(x = serialGetChar(fd))
+		{
+			if(x == '\n') break;
+			temp[i] == x;
+			i++
+		}
+		temp[i] = '\0';
+	}
+*/

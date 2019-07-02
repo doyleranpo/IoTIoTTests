@@ -143,4 +143,8 @@ https://arduino-esp8266.readthedocs.io/en/latest/libraries.html#wifi-esp8266wifi
 		}
 		temp[i] = '\0';
 	}
+	while(x = serialGetChar(fd))
+	{
+		sscanf()
+	}
 */

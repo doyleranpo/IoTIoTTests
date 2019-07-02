@@ -23,7 +23,7 @@ More information on these sensors can be found [here](https://www.instructables.
 - [ ] Alcohol Sensor
 - [ ] Temperature and Humidity sensor
 - [ ] Digital Temperature Sensor
-
+- [x] ESP8266 (WIP)
 ### Sensor Configuration 
 ___
 ```c

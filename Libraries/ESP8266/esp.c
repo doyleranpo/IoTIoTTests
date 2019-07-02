@@ -83,13 +83,13 @@ void config(int fd){
 
 void disconnectWiFi(int fd){
 	serialPrintf(fd,"AT+CWQAP\r\n");
-	while (checkOk == 0);
+	while (checkOk(fd) == 0);
 	delay(10);
 }
 
 void isWiFiConnected(int fd){
 	serialPrintf(fd,"AT+CIPSTATUS\r\n");
-	while(checkOk == 0);
+	while(checkOk(fd) == 0);
 	delay(10);	
 	printf("<stat>: status of the ESP8266 Station interface.\n\t
 				‣2: The ESP8266 Station is connected to an AP and its IP is obtained.\n\t 
@@ -107,10 +107,13 @@ void isWiFiConnected(int fd){
 
 void setAutoConnect(int fd, int choice){
 	serialPrintf(fd,"AT+CWAUTOCONN=%d",choice);
-	while (checkOK() == 0);
-
+	while (checkOK(fd) == 0);
+	delay(10);
 }
-
+void getMACAddress(int fd){
+	serialPrintf(fd,"AT+CIPSTAMAC?\r\n");
+	while( checkOK(fd) == 0;)
+}
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf

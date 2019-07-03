@@ -77,10 +77,6 @@ void getIP(int fd){
 	delay(10);
 }
 
-// void config(int fd){
-
-// }
-
 void disconnectWiFi(int fd){
 	serialPrintf(fd,"AT+CWQAP\r\n");
 	while (checkOk(fd) == 0);
@@ -116,6 +112,11 @@ void getMACAddress(int fd){
 	while( checkOK(fd) == 0;)
 }
 
+void getMACAddress(int fd, char *MAC){
+	serialPrintf(fd,"AT+CIPSTAMAC=%s\r\n",MAC);
+	while( checkOK(fd) == 0;)
+}
+
 void beginSmartConfig(int fd){
 	serialPrintf(fd,"AT+CWSTARTSMART=3\r\n");
 	while (checkOk(fd) == 0);
@@ -146,7 +147,18 @@ void getHostname(int fd, char* host){
 	delay(10);
 }
 
-void 
+void dnsL(int fd, char* dns){
+	serialPrintf(fd,"AT+CIPDOMAIN=\"%s\"",dns);
+	while(checkOK(fd) == 0);
+	delay(10);
+}
+
+
+void connectionDetails(int fd){
+	serialPrintf(fd,"AT+CIPSTA?\r\n");
+	while (checkOK(fd) == 0);
+	delay(10);
+}
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf

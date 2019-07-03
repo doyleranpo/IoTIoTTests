@@ -1,5 +1,8 @@
 #include "esp.h"
 
+//Statiion Configuration functions. 
+//ESP8266 Station Mode
+
 int checkOk(int fd){
 	char x;
     char buf[100];
@@ -20,6 +23,7 @@ int checkOk(int fd){
 			return 0;
 	}
 }
+
 void dispDetails(char *buf){
     printf("%s\n",buf);
 }
@@ -153,12 +157,16 @@ void dnsL(int fd, char* dns){
 	delay(10);
 }
 
-
 void connectionDetails(int fd){
 	serialPrintf(fd,"AT+CIPSTA?\r\n");
 	while (checkOK(fd) == 0);
 	delay(10);
 }
+
+//Soft Access point configuration functions
+//ESP8266 Soft Access Point Mode
+
+
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf

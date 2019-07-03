@@ -112,8 +112,8 @@ void getMACAddress(int fd){
 	while( checkOK(fd) == 0;)
 }
 
-void getMACAddress(int fd, char *MAC){
-	serialPrintf(fd,"AT+CIPSTAMAC=%s\r\n",MAC);
+void getMACAddress(int fd, char *mac){
+	serialPrintf(fd,"AT+CIPSTAMAC=%s\r\n",mac);
 	while( checkOK(fd) == 0;)
 }
 

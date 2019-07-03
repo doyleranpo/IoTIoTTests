@@ -24,9 +24,9 @@ void dispDetails(char *buf){
     printf("%s\n",buf);
 }
 
-void initESP(int fd){
+void initESP(int fd, int choice){
     
-    serialPrintf(fd,"AT+GMR\r\n");
+    serialPrintf(fd,"AT+CWMODE=%d\r\n",choice);
     delay(500);
 	while(checkOk(fd)==0);
 }
@@ -110,6 +110,7 @@ void setAutoConnect(int fd, int choice){
 	while (checkOK(fd) == 0);
 	delay(10);
 }
+
 void getMACAddress(int fd){
 	serialPrintf(fd,"AT+CIPSTAMAC?\r\n");
 	while( checkOK(fd) == 0;)
@@ -126,6 +127,26 @@ void stopSmartConfig(int fd){
 	while(checkOk(fd) == 0);
 	delay(10);
 }
+
+void connectWPS(int fd,int choice){
+	serialPrintf(fd,"AT+WPS=%d\r\n",choice);
+	while(checkOK(fd)==0);
+	delay(10);
+}
+
+void getHostname(int fd){
+	serialPrintf(fd,"AT+CWHOSTNAME?\r\n");
+	while( checkOK(fd) == 0);
+	delay(10);
+}
+
+void getHostname(int fd, char* host){
+	serialPrintf(fd,"AT+CWHOSTNAME=%s\r\n",host);
+	while( checkOK(fd) == 0);
+	delay(10);
+}
+
+void 
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf

@@ -166,6 +166,12 @@ void connectionDetails(int fd){
 //Soft Access point configuration functions
 //ESP8266 Soft Access Point Mode
 
+void softAP(char *ssid, char *pwd, int channel, int enc, int max_con, int broadcast){
+	serialPrintf(fd,"AT+CWSAP=\"%s\",\"%s\",%d,%d,%d,%d",ssid,pwd,enc,max_con,broadcast);
+	while(checkOK(fd) == 0);
+	delay(10);
+}
+
 
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html

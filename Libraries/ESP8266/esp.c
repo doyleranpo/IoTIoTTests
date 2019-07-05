@@ -176,7 +176,7 @@ void softAPconfig(int fd, char* ip, char* gateway, char* subnet){
 	serialPrintf(fd,"AT+CIPAP=\"%s\",\"%s\",\"%s\"\r\n",ip,gateway,subnet);
 	while(checkOk(fd) == 0);
 	delay(10);
- }
+}
 
 void softAPIP(int fd){
 	serialPrintf(fd,"AT+CIPAP?\r\n");

@@ -182,19 +182,19 @@ void softAPIP(int fd){
 	serialPrintf(fd,"AT+CIPAP?\r\n");
 	while (checkOk(fd) == 0);
 	delay(10);
-	
 }
+
 void softAPgetStation(int fd){
 	serialPrintf(fd,"AT+CWLIF\r\n");
 	while(checkOk == 0);
 	delay(10);
- }
+}
 
 void softAPmacAddress(int fd){
 	serialPrintf(fd,"AT+CIPAPMAC?\r\n");
 	while (checkOk(fd) == 0);
 	delay(10);	 
- }
+}
 
 void softAPmacAddress(int fd, char* mac){
 	serialPrintf(fd,"AT+CIPAPMAC=\"%s\"",mac);

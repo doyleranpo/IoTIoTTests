@@ -1,7 +1,62 @@
+/**
+***************************************************************************************************
+* @file		esp.c
+* @author	Ayush Srivastava
+* @brief	The ESP8266 is a low-cost Wi-Fi microchip with full TCP/IP 
+*			stack and microcontroller capability
+***************************************************************************************************
+						#### Functions Description ####
+===================================================================================================
+(#)void setupShunyaInterfaces() 	:Initialize the shunya interface
+(#)void delay(ms)					:Produces a delay equal to the value given(in ms) 
+(#)serialPrintf()					:Prints value to serial buffer
+(#)char serialGetchar()				:Returns the character present in the serial buffer
+****************************************************************************************************
+						####		NOTE 			####
+===================================================================================================
+*	In the above library all responses which are printed on the terminal window are responses to AT 
+*	commands each response follows a particular pattern for eg. +CIPSTA: <ip> this can be a little 
+*	difficult to understand if the user is not familiar with AT commands and their respective 
+*	responses.
+*	Thus to simplify this the tokens need to be seperated into different strings which will allow 
+*	us to use them as certain checking variables and add more functions like smartConfigStatus(),
+*	RSSI(), BSSID(), etc.
+*	Issue: The number of parameters in every response is different thus no common function 
+*	can be written
+****************************************************************************************************
+						#### 		Reference		####
+===================================================================================================
+Links to refer while trying to add functions to library
+https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
+https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf
+https://arduino-esp8266.readthedocs.io/en/latest/libraries.html#wifi-esp8266wifi-library
+
+****************************************************************************************************
+						#### Prototype to seperate string ####
+===================================================================================================
+*	Trial code for seperating out strings from responses by ESP8266
+*	WIP
+*	Open to suggestions 
+	// while(strncmp(temp,"+",1)!=0)
+	// {
+	// 	while(x = serialGetChar(fd))
+	// 	{
+	// 		if(x == '\n') break;
+	// 		temp[i] == x;
+	// 		i++
+	// 	}
+	// 	temp[i] = '\0';
+	// }
+	// while(x = serialGetChar(fd))
+	// {
+	// 	sscanf(buf,"%s %s %s %s %s",ip,netmask,gateway,mac,bssid) //Example
+	// }
+****************************************************************************************************
+*/
+
 #include "esp.h"
 
-// ESP8266 Initial Configuration and setup functions
-
+// Loop control and Display Functions
 int checkOk(int fd){
 	char x;
     char buf[100];
@@ -27,6 +82,8 @@ void dispDetails(char *buf){
     printf("%s\n",buf);
 }
 
+// ESP8266 Initial Configuration and setup functions
+
 void initESP(int fd, int choice){
     
     serialPrintf(fd,"AT+CWMODE=%d\r\n",choice);
@@ -38,9 +95,6 @@ void initESP(int fd, int choice){
 //ESP8266 Station Mode
 
 void connectToWiFi(char *ssid, char *pass, int fd){
-	serialPrintf(fd,"AT+CWMODE=3\r\n");
-	while (checkOk(fd)==0);
-	delay(10);
     serialPrintf(fd,"AT+CWJAP=\"%s\",\"%s\"\r\n",ssid,pass);
     while(checkOk(fd)==0);
     delay(10);
@@ -206,30 +260,3 @@ void sendOverServer(int fd, char *buf){
 	serialPrintf(fd,"AT+CIPCLOSE=0\r\n");
 	while (checkOk(fd)==0);
 }
-
-/*
-Links to refer while trying to add functions to library
-https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
-https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf
-https://arduino-esp8266.readthedocs.io/en/latest/libraries.html#wifi-esp8266wifi-library
- */
-
-/*
-// Trial code for seperating out strings from responses by ESP8266
-// WIP
-// Open to suggestions 
-	while(strncmp(temp,"+",1)!=0)
-	{
-		while(x = serialGetChar(fd))
-		{
-			if(x == '\n') break;
-			temp[i] == x;
-			i++
-		}
-		temp[i] = '\0';
-	}
-	while(x = serialGetChar(fd))
-	{
-		sscanf()
-	}
-*/

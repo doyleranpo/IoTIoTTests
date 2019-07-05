@@ -4,22 +4,41 @@
 #include <Serial.h>
 #include <string.h>
 
+// Loop Control and Display
 int checkOk(int);
 void dispDetails(char*);
+
+//Initialization
 void initESP(int, int);
 void connectToWiFi(char*, char*, int);
+void softAPinit(char*, char*, int, int, int, int);
+void softAPconfig(int, char*, char*, char*);
+
+//Server Configuration
 void establishServer(int);
+
+//Sending Data over server
 void sendOverServer(int , char *);
+
+//Reading properties and values
 void getIP(int);
-void disconnectWiFi(int);
+void getHostname(int);
 void isWiFiConnected(int);
 void setAutoConnect(int , int);
 void getMACAddress(int);
-void getMACAddress(int , char *);
+void connectionDetails(int);
+void softAPgetStation(int);
+void softAPmacAddress(int);
+void softAPIP(int);
+
+//WiFi Configurations
 void beginSmartConfig(int);
 void stopSmartConfig(int);
 void connectWPS(int,int);
-void getHostname(int);
+void getMACAddress(int , char *);
 void getHostname(int, char*);
 void dnsL(int , char*);
-void connectionDetails(int);
+void softAPmacAddress(int, char*);
+void disconnectWiFi(int);
+
+

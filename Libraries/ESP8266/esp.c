@@ -107,18 +107,18 @@ void isWiFiConnected(int fd){
 
 void setAutoConnect(int fd, int choice){
 	serialPrintf(fd,"AT+CWAUTOCONN=%d\r\n",choice);
-	while (checkOK(fd) == 0);
+	while (checkOk(fd) == 0);
 	delay(10);
 }
 
 void getMACAddress(int fd){
 	serialPrintf(fd,"AT+CIPSTAMAC?\r\n");
-	while( checkOK(fd) == 0;)
+	while( checkOk(fd) == 0;)
 }
 
 void getMACAddress(int fd, char *mac){
 	serialPrintf(fd,"AT+CIPSTAMAC=%s\r\n",mac);
-	while( checkOK(fd) == 0;)
+	while( checkOk(fd) == 0;)
 }
 
 void beginSmartConfig(int fd){
@@ -135,44 +135,72 @@ void stopSmartConfig(int fd){
 
 void connectWPS(int fd,int choice){
 	serialPrintf(fd,"AT+WPS=%d\r\n",choice);
-	while(checkOK(fd)==0);
+	while(checkOk(fd)==0);
 	delay(10);
 }
 
 void getHostname(int fd){
 	serialPrintf(fd,"AT+CWHOSTNAME?\r\n");
-	while( checkOK(fd) == 0);
+	while( checkOk(fd) == 0);
 	delay(10);
 }
 
 void getHostname(int fd, char* host){
 	serialPrintf(fd,"AT+CWHOSTNAME=%s\r\n",host);
-	while( checkOK(fd) == 0);
+	while( checkOk(fd) == 0);
 	delay(10);
 }
 
 void dnsL(int fd, char* dns){
 	serialPrintf(fd,"AT+CIPDOMAIN=\"%s\"",dns);
-	while(checkOK(fd) == 0);
+	while(checkOk(fd) == 0);
 	delay(10);
 }
 
 void connectionDetails(int fd){
 	serialPrintf(fd,"AT+CIPSTA?\r\n");
-	while (checkOK(fd) == 0);
+	while (checkOk(fd) == 0);
 	delay(10);
 }
 
 //Soft Access point configuration functions
 //ESP8266 Soft Access Point Mode
 
-void softAP(char *ssid, char *pwd, int channel, int enc, int max_con, int broadcast){
+void softAPinit(char *ssid, char *pwd, int channel, int enc, int max_con, int broadcast){
 	serialPrintf(fd,"AT+CWSAP=\"%s\",\"%s\",%d,%d,%d,%d",ssid,pwd,enc,max_con,broadcast);
-	while(checkOK(fd) == 0);
+	while(checkOk(fd) == 0);
 	delay(10);
 }
 
+void softAPconfig(int fd, char* ip, char* gateway, char* subnet){
+	serialPrintf(fd,"AT+CIPAP=\"%s\",\"%s\",\"%s\"\r\n",ip,gateway,subnet);
+	while(checkOk(fd) == 0);
+	delay(10);
+ }
 
+void softAPIP(int fd){
+	serialPrintf(fd,"AT+CIPAP?\r\n");
+	while (checkOk(fd) == 0);
+	delay(10);
+	
+}
+void softAPgetStation(int fd){
+	serialPrintf(fd,"AT+CWLIF\r\n");
+	while(checkOk == 0);
+	delay(10);
+ }
+
+void softAPmacAddress(int fd){
+	serialPrintf(fd,"AT+CIPAPMAC?\r\n");
+	while (checkOk(fd) == 0);
+	delay(10);	 
+ }
+
+void softAPmacAddress(int fd, char* mac){
+	serialPrintf(fd,"AT+CIPAPMAC=\"%s\"",mac);
+	while(checkOk(fd) == 0);
+	delay(10);
+}
 /*
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf

@@ -1,7 +1,6 @@
 #include "esp.h"
 
-//Statiion Configuration functions. 
-//ESP8266 Station Mode
+// ESP8266 Initial Configuration and setup functions
 
 int checkOk(int fd){
 	char x;
@@ -35,6 +34,9 @@ void initESP(int fd, int choice){
 	while(checkOk(fd)==0);
 }
 
+//Statiion Configuration functions. 
+//ESP8266 Station Mode
+
 void connectToWiFi(char *ssid, char *pass, int fd){
 	serialPrintf(fd,"AT+CWMODE=3\r\n");
 	while (checkOk(fd)==0);
@@ -42,37 +44,6 @@ void connectToWiFi(char *ssid, char *pass, int fd){
     serialPrintf(fd,"AT+CWJAP=\"%s\",\"%s\"\r\n",ssid,pass);
     while(checkOk(fd)==0);
     delay(10);
-}
-
-void establishServer(int fd){
-	serialPrintf(fd,"AT+CWMODE=3\r\n");
-	while (checkOk(fd)==0);
-	delay(10);
-	serialPrintf(fd,"AT+CIPMUX=1\r\n");
-	while (checkOk(fd)==0);
-	delay(10);
-	serialPrintf(fd,"AT+CIPSERVER=1,8080\r\n");
-	while(checkOk(fd)==0);
-	delay(10);	
-}
-
-void sendOverServer(int fd, char *buf){
-	int n= strlen(buf),i;
-	char temp[100],x;
-	serialPrintf(fd,"AT+CIPSEND=0,%d\r\n",n);
-	delay(10);
-	while(strncmp(temp,">",1)==1){
-		while(x = serialGetchar(fd)){
-			if(x == '\n') break;	    
-			temp[i] = x;
-			i++;
-		}
-		temp[i]='\0';
-	}
-	serialPrintf(fd,"%s",buf);
-	delay(10);
-	serialPrintf(fd,"AT+CIPCLOSE=0\r\n");
-	while (checkOk(fd)==0);
 }
 
 void getIP(int fd){
@@ -201,13 +172,52 @@ void softAPmacAddress(int fd, char* mac){
 	while(checkOk(fd) == 0);
 	delay(10);
 }
+
+//Server and client configuration functions
+// ESP8266 Server and Client
+
+void establishServer(int fd){
+	serialPrintf(fd,"AT+CWMODE=3\r\n");
+	while (checkOk(fd)==0);
+	delay(10);
+	serialPrintf(fd,"AT+CIPMUX=1\r\n");
+	while (checkOk(fd)==0);
+	delay(10);
+	serialPrintf(fd,"AT+CIPSERVER=1,8080\r\n");
+	while(checkOk(fd)==0);
+	delay(10);	
+}
+
+void sendOverServer(int fd, char *buf){
+	int n= strlen(buf),i;
+	char temp[100],x;
+	serialPrintf(fd,"AT+CIPSEND=0,%d\r\n",n);
+	delay(10);
+	while(strncmp(temp,">",1)==1){
+		while(x = serialGetchar(fd)){
+			if(x == '\n') break;	    
+			temp[i] = x;
+			i++;
+		}
+		temp[i]='\0';
+	}
+	serialPrintf(fd,"%s",buf);
+	delay(10);
+	serialPrintf(fd,"AT+CIPCLOSE=0\r\n");
+	while (checkOk(fd)==0);
+}
+
 /*
+Links to refer while trying to add functions to library
 https://arduino-esp8266.readthedocs.io/en/latest/esp8266wifi/station-class.html
 https://www.espressif.com/sites/default/files/documentation/4a-esp8266_at_instruction_set_en.pdf
 https://arduino-esp8266.readthedocs.io/en/latest/libraries.html#wifi-esp8266wifi-library
  */
 
 /*
+// Trial code for seperating out strings from responses by ESP8266
+// WIP
+// Open to suggestions 
 	while(strncmp(temp,"+",1)!=0)
 	{
 		while(x = serialGetChar(fd))

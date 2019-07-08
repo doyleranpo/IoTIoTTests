@@ -1,19 +1,24 @@
 #include "esp.h"
 
 int main(){
+    shunyaInterfacesSetup();
     int fd,c;
+    char passw[16];
+    char wssid[20];
     fd=serialOpen("/dev/ttyS1",115200);
-    initESP(fd);
-    connectToWiFi("iotiot1","Router4me",fd);
-    establishServer(fd);
-    char buf[10];
-    printf("\nEnter a string to send\n");
-    scanf("%s",buf);
-    getIP(fd);
-    printf("Do you wish to send data\n",&c);
-    scanf("%d",&c);
-    if (c==1)
-        sendOverServer(fd,buf);
-    else 
-        return 0;
+    initESP(fd, 1);
+    printf("Enter SSID\n");
+    scanf("%s",wssid);
+    printf("Enter password\n")
+    scanf("%s",passw);
+    connectToWiFi(wssid,passw,fd);
+    delay(100);
+    printf("MAC Address is\n");
+    getMACAddress(fd);
+    delay(100);
+    printf("Connection Summary\n");
+    connectionDetails(fd);
+    delay(100);
+    printf("Disconnecting WiFi\n");
+    disconnectWiFi(fd);
 }

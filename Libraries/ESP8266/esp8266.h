@@ -37,7 +37,7 @@ void stopSmartConfig(int);
 void connectWPS(int,int);
 void alterMACAddress(int , char *);
 void alterHostname(int, char*);
-void dnsL(int , char*);
+void dnsL(int , char*, char*);
 void softAPaltermacAddress(int, char*);
 void disconnectWiFi(int);
 

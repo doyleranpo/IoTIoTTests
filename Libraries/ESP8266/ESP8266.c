@@ -164,8 +164,8 @@ void alterHostname(int fd, char* host){
 	delay(10);
 }
 
-void dnsL(int fd, char* dns){
-	serialPrintf(fd,"AT+CIPDOMAIN=\"%s\"",dns);
+void dnsL(int fd, char* dns1, char* dns2){
+	serialPrintf(fd,"AT+CIPDNS=1,\"%s\",\"%s\"",dns1,dns2);
 	while(checkOk(fd) == 0);
 	delay(10);
 }

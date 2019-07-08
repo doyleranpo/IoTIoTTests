@@ -11,7 +11,7 @@ void dispDetails(char*);
 //Initialization
 void initESP(int, int);
 void connectToWiFi(char*, char*, int);
-void softAPinit(char*, char*, int, int, int, int);
+void softAPinit(int, char*, char*, int, int, int, int);
 void softAPconfig(int, char*, char*, char*);
 
 //Server Configuration
@@ -35,10 +35,10 @@ void softAPIP(int);
 void beginSmartConfig(int);
 void stopSmartConfig(int);
 void connectWPS(int,int);
-void getMACAddress(int , char *);
-void getHostname(int, char*);
+void alterMACAddress(int , char *);
+void alterHostname(int, char*);
 void dnsL(int , char*);
-void softAPmacAddress(int, char*);
+void softAPaltermacAddress(int, char*);
 void disconnectWiFi(int);
 
 

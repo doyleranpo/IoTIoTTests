@@ -116,18 +116,6 @@ void isWiFiConnected(int fd){
 	serialPrintf(fd,"AT+CIPSTATUS\r\n");
 	while(checkOk(fd) == 0);
 	delay(10);	
-	printf("<stat>: status of the ESP8266 Station interface.\n\t
-				‣2: The ESP8266 Station is connected to an AP and its IP is obtained.\n\t 
-				‣3: The ESP8266 Station has created a TCP or UDP transmission.\n\t 
-				‣4: The TCP or UDP transmission of ESP8266 Station is disconnected.\n\t 
-				‣5: The ESP8266 Station does NOT connect to an AP. \n
-			•<link ID>: ID of the connection (0~4), used for multiple connections. \n
-			•<type>: string parameter, "TCP" or "UDP". \n
-			•<remote IP>: string parameter indicating the remote IP address. \n
-			•<remote port>: the remote port number.\n 
-			•<local port>: ESP8266 local port number.\n 
-			•<tetype>: ‣0: ESP8266 runs as a client. \n\t
-						‣1: ESP8266 runs as a server\n");
 }
 
 void setAutoConnect(int fd, int choice){
@@ -138,12 +126,12 @@ void setAutoConnect(int fd, int choice){
 
 void getMACAddress(int fd){
 	serialPrintf(fd,"AT+CIPSTAMAC?\r\n");
-	while( checkOk(fd) == 0;)
+	while( checkOk(fd) == 0);
 }
 
-void getMACAddress(int fd, char *mac){
+void alterMACAddress(int fd, char *mac){
 	serialPrintf(fd,"AT+CIPSTAMAC=%s\r\n",mac);
-	while( checkOk(fd) == 0;)
+	while( checkOk(fd) == 0);
 }
 
 void beginSmartConfig(int fd){
@@ -170,7 +158,7 @@ void getHostname(int fd){
 	delay(10);
 }
 
-void getHostname(int fd, char* host){
+void alterHostname(int fd, char* host){
 	serialPrintf(fd,"AT+CWHOSTNAME=%s\r\n",host);
 	while( checkOk(fd) == 0);
 	delay(10);
@@ -191,7 +179,7 @@ void connectionDetails(int fd){
 //Soft Access point configuration functions
 //ESP8266 Soft Access Point Mode
 
-void softAPinit(char *ssid, char *pwd, int channel, int enc, int max_con, int broadcast){
+void softAPinit(int fd,char *ssid, char *pwd, int channel, int enc, int max_con, int broadcast){
 	serialPrintf(fd,"AT+CWSAP=\"%s\",\"%s\",%d,%d,%d,%d",ssid,pwd,enc,max_con,broadcast);
 	while(checkOk(fd) == 0);
 	delay(10);
@@ -221,7 +209,7 @@ void softAPmacAddress(int fd){
 	delay(10);	 
 }
 
-void softAPmacAddress(int fd, char* mac){
+void softAPaltermacAddress(int fd, char* mac){
 	serialPrintf(fd,"AT+CIPAPMAC=\"%s\"",mac);
 	while(checkOk(fd) == 0);
 	delay(10);

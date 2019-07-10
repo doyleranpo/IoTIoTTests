@@ -14,15 +14,19 @@
 
 #include "ADXL.h"
 void main(){
+    int x,y,z;
     shunyaInterfacesSetup();
     initADXL(); //Initializing ADXL
     while (1)
     {
-        printf("X pin %d\n",readADXL(A1)); 
-        // delay(100);
-        printf("Y pin %d\n",readADXL(A2)); 
-        // delay(100);
-        printf("Z pin %d\n",readADXL(A3));
+        x = readADXL(A1);
+        y = readADXL(A2);
+        z = readADXL(A3);
+        printf("X pin %d\n",x); 
+        delay(100);
+        printf("Y pin %d\n",y); 
+        delay(100);
+        printf("Z pin %d\n",z);
         delay(1000);
         /*Reading converted value at pins of ADC whose addresses are given by 0x01, 0x10, 0x11*/
     }

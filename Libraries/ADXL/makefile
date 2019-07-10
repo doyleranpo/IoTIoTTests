@@ -1,7 +1,9 @@
-example.o: example.c esp.h
+example.o: example.c ADXL.h
 	gcc -c -g example.c
-esp.o: esp.c esp.h
-	gcc -c -g esp.c
-example: example.o esp.o
-	gcc -o example example.o esp.o -l shunyaInterfaces
+pcf8591.o: pcf8591.c pcf8591.h
+	gcc -c -g pcf8591.c
+ADXL.o: ADXL.c ADXL.h
+	gcc -c -g ADXL.c
+example: example.o ADXL.o
+	gcc -o example example.o ADXL.o pcf8591.o -l shunyaInterfaces
 

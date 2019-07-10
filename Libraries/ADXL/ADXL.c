@@ -1,9 +1,9 @@
 #include "ADXL.h"
 
 void initADXL(){
-	initPCF8591(0x48);
+	pcf8591Setup();
 	}
 
 int readADXL(int addr){
-	return readPCF8591(addr);
+	return pcf8591Read(addr);
 	}

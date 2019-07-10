@@ -14,6 +14,7 @@
 
 #include "ADXL.h"
 void main(){
+    shunyaInterfacesSetup();
     initADXL(); //Initializing ADXL
     while (1)
     {

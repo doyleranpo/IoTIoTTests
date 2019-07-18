@@ -733,3 +733,50 @@ uint8_t setAddress (uint32_t address) {
   }
 }
 
+uint8_t setBaudrate (uint32_t baud) {
+  uint8_t baudNumber = baud / 9600; //check is the baudrate is a multiple of 9600
+  uint8_t dataArray[2] = {0};
+
+  if((baudNumber > 0) && (baudNumber < 13)) { //should be between 1 (9600bps) and 12 (115200bps)
+    dataArray[0] = baudNumber;  //low byte
+    dataArray[1] = 4; //the code for the system parameter number, 4 means baudrate
+
+    sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SETSYSPARA, dataArray, 2); //send the command and data
+    uint8_t response = receivePacket(); //read response
+
+    if(response == FPS_RX_OK) { //if the response packet is valid
+      if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+        fp.deviceBaudrate = baud;
+        
+        if (fp.fd) { //if using hardware serial
+          serialClose(fp.fd);  //end the existing serial port
+          serialOpen(fp.fd,fp.deviceBaudrate);  //restart the port with new baudrate
+        }
+
+        #ifdef FPS_DEBUG
+          printf("Setting baudrate success.");
+        #endif
+        return FPS_RESP_OK; //baudrate setting complete
+      }
+      else {
+        #ifdef FPS_DEBUG
+          printf("Setting baudrate failed.");
+          printf("rxConfirmationCode = ");
+          printf("%0#10x",fp.rxConfirmationCode);
+        #endif
+        return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+      }
+    }
+    else {
+      return response; //return packet receive error code
+    }
+  }
+  else {
+    #ifdef FPS_DEBUG
+      printf("Bad baudrate value.");
+      printf("Setting baudrate failed.");
+    #endif
+    return FPS_BAD_VALUE;
+  }
+}
+

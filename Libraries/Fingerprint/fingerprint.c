@@ -144,7 +144,7 @@ uint8_t sendPacket (uint8_t type, uint8_t command, uint8_t* data, uint16_t dataL
     // printf("rxPacketLength[] = ");
     // printf(rxPacketLength[1]);
     // printf("-");
-    // printfln(rxPacketLength[0]);
+    // printf(rxPacketLength[0]);
   #endif
 
   return FPS_RX_OK;
@@ -173,8 +173,8 @@ uint8_t receivePacket (uint32_t timeout) {
     if(serialDataAvail(fp.fd)) {
       byteBuffer = serialGetchar(fp.fd);
       #ifdef FPS_DEBUG
-        // debugPort.print("Response byte found = ");
-        // debugPort.println(byteBuffer, HEX);
+        // printf("Response byte found = ");
+        // printf("%0#10x",byteBuffer);
       #endif
       serialBuffer[serialBufferLength] = byteBuffer;
       serialBufferLength++;
@@ -186,15 +186,15 @@ uint8_t receivePacket (uint32_t timeout) {
 
   if(serialBufferLength == 0) {
     #ifdef FPS_DEBUG
-      debugPort.println("Serial timed out.");
-      debugPort.println("This usually means the baud rate is not correct.");
+      printf("Serial timed out.");
+      printf("This usually means the baud rate is not correct.");
     #endif
     return FPS_RX_TIMEOUT;
   }
 
   if(serialBufferLength < 10) {
     #ifdef FPS_DEBUG
-      debugPort.println("Received bad packet with length < 10");
+      printf("Received bad packet with length < 10");
     #endif
     return FPS_RX_BADPACKET;
   }
@@ -204,19 +204,19 @@ uint8_t receivePacket (uint32_t timeout) {
   while(true) {
     switch (token) {
       case 0: //test packet start codes
-        if(serialBuffer[token] == startCode[1])
+        if(serialBuffer[token] == fp.startCode[1])
           break;
         else {
           #ifdef FPS_DEBUG //enable it to get debug info
-            debugPort.println("Error at 0 : Start Code");
-            debugPort.print("Received packet = ");
+            printf("Error at 0 : Start Code");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_BADPACKET;
@@ -227,91 +227,91 @@ uint8_t receivePacket (uint32_t timeout) {
           break;
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 1 : Start Code");
-            debugPort.print("Received packet = ");
+            printf("Error at 1 : Start Code");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_BADPACKET;
         }
 
       case 2: //test device address
-        if(serialBuffer[token] == deviceAddress[3])
+        if(serialBuffer[token] == fp.deviceAddress[3])
           break;
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 2 : Device Address");
-            debugPort.print("Received packet = ");
+            printf("Error at 2 : Device Address");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_BADPACKET;
         }
       
       case 3:
-        if(serialBuffer[token] == deviceAddress[2])
+        if(serialBuffer[token] == fp.deviceAddress[2])
           break;
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 3 : Device Address");
-            debugPort.print("Received packet = ");
+            printf("Error at 3 : Device Address");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf();
           #endif
 
           return FPS_RX_BADPACKET;
         }
 
       case 4:
-        if(serialBuffer[token] == deviceAddress[1])
+        if(serialBuffer[token] == fp.deviceAddress[1])
           break;
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 4 : Device Address");
-            debugPort.print("Received packet = ");
+            printf("Error at 4 : Device Address");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf();
           #endif
 
           return FPS_RX_BADPACKET;
         }
       
       case 5:
-        if(serialBuffer[token] == deviceAddress[0])
+        if(serialBuffer[token] == fp.deviceAddress[0])
           break;
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 5 : Device Address");
-            debugPort.print("Received packet = ");
+            printf("Error at 5 : Device Address");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf();
           #endif
 
           return FPS_RX_BADPACKET;
@@ -319,20 +319,20 @@ uint8_t receivePacket (uint32_t timeout) {
 
       case 6: //test for valid packet type
         if((serialBuffer[token] == FPS_ID_COMMANDPACKET) || (serialBuffer[token] == FPS_ID_DATAPACKET) || (serialBuffer[token] == FPS_ID_ACKPACKET) || (serialBuffer[token] == FPS_ID_ENDDATAPACKET)) {
-          rxPacketType = serialBuffer[token]; //store the packet ID to class variable
+          fp.rxPacketType = serialBuffer[token]; //store the packet ID to class variable
           break;
         }
         else {
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 6 : Unknown Response");
-            debugPort.print("Received packet = ");
+            printf("Error at 6 : Unknown Response");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_WRONG_RESPONSE;
@@ -340,87 +340,87 @@ uint8_t receivePacket (uint32_t timeout) {
 
       case 7: //read packet data length
         if((serialBuffer[token] > 0) || (serialBuffer[token + 1] > 0)) {
-          rxPacketLength[0] = serialBuffer[token + 1];  //lower byte
-          rxPacketLength[1] = serialBuffer[token];  //higher byte
-          rxPacketLengthL = uint16_t(rxPacketLength[1] << 8) + rxPacketLength[0]; //calculate the full length value
-          rxDataBufferLength = rxPacketLengthL - 3; //subtract 2 for checksum and 1 for command
+          fp.rxPacketLength[0] = serialBuffer[token + 1];  //lower byte
+          fp.rxPacketLength[1] = serialBuffer[token];  //higher byte
+          fp.rxPacketLengthL = (uint16_t)(fp.rxPacketLength[1] << 8) + fp.rxPacketLength[0]; //calculate the full length value
+          fp.rxDataBufferLength = fp.rxPacketLengthL - 3; //subtract 2 for checksum and 1 for command
           token++; //because we read one additional bytes here
           break;
         }
 
         else {
          #ifdef FPS_DEBUG
-            debugPort.println("Error at 7 : Unknown Response");
-            debugPort.print("Received packet = ");
+            printf("Error at 7 : Unknown Response");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_WRONG_RESPONSE;
         }
 
       case 9: //read confirmation or instruction code
-        rxConfirmationCode = serialBuffer[token]; //the first byte of data will be either instruction or confirmation code
+        fp.rxConfirmationCode = serialBuffer[token]; //the first byte of data will be either instruction or confirmation code
         break;
 
       case 10: //read data
-        for(int i=0; i < rxDataBufferLength; i++) {
-          rxDataBuffer[(rxDataBufferLength - 1) - i] = serialBuffer[token + i]; //store low values at start of the rxDataBuffer array
+        for(int i=0; i < fp.rxDataBufferLength; i++) {
+          fp.rxDataBuffer[(fp.rxDataBufferLength - 1) - i] = serialBuffer[token + i]; //store low values at start of the rxDataBuffer array
         }
         break;
       
       case 11: //read checksum
-        if(rxDataBufferLength == 0) { //sometimes there's no data other than the confirmation code
-          rxPacketChecksum[0] = serialBuffer[token]; //lower byte
-          rxPacketChecksum[1] = serialBuffer[token - 1]; //high byte
-          rxPacketChecksumL = uint16_t(rxPacketChecksum[1] << 8) + rxPacketChecksum[0]; //calculate L value
+        if(fp.rxDataBufferLength == 0) { //sometimes there's no data other than the confirmation code
+          fp.rxPacketChecksum[0] = serialBuffer[token]; //lower byte
+          fp.rxPacketChecksum[1] = serialBuffer[token - 1]; //high byte
+          fp.rxPacketChecksumL = (uint16_t)(fp.rxPacketChecksum[1] << 8) + fp.rxPacketChecksum[0]; //calculate L value
 
           uint16_t tempSum = 0; //temp checksum 
 
-          tempSum = rxPacketType + rxPacketLength[0] + rxPacketLength[1] + rxConfirmationCode;
+          tempSum = fp.rxPacketType + fp.rxPacketLength[0] + fp.rxPacketLength[1] + fp.rxConfirmationCode;
 
-          if(rxPacketChecksumL == tempSum) { //check if the calculated checksum matches the received one
+          if(fp.rxPacketChecksumL == tempSum) { //check if the calculated checksum matches the received one
             #ifdef FPS_DEBUG
-              debugPort.println("Checksums match success.");
-              debugPort.print("Received = ");
-              debugPort.print(rxPacketChecksum[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketChecksum[0], HEX);
-              debugPort.print("Received L = " );
-              debugPort.println(rxPacketChecksumL, HEX);
-              debugPort.print("Calculated = ");
-              debugPort.print(byte(tempSum >> 8), HEX);
-              debugPort.print("-");
-              debugPort.println(byte(tempSum & 0xFFU), HEX);
-              debugPort.print("Calculated L = ");
-              debugPort.println(tempSum, HEX);
-              debugPort.print("Received packet = ");
+              printf("Checksums match success.");
+              printf("Received = ");
+              printf("%0#10x",fp.rxPacketChecksum[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketChecksum[0]);
+              printf("Received L = " );
+              printf("%0#10x",fp.rxPacketChecksumL);
+              printf("Calculated = ");
+              printf("%0#10x",(byte)(tempSum >> 8));
+              printf("-");
+              printf("%0#10x",(byte)(tempSum & 0xFFU));
+              printf("Calculated L = ");
+              printf("%0#10x",tempSum);
+              printf("Received packet = ");
 
               for(int i=0; i < serialBufferLength; i++) {
-                debugPort.print(serialBuffer[i], HEX);
+                printf("%0#10x",serialBuffer[i]);
                 if(i != (serialBufferLength - 1)) {
-                  debugPort.print("-");
+                  printf("-");
                 }
               }
-              debugPort.println();
-              debugPort.print("Data stream = none");
+              printf();
+              printf("Data stream = none");
 
-              debugPort.println();
-              debugPort.print("rxConfirmationCode = ");
-              debugPort.println(rxConfirmationCode, HEX);
-              debugPort.print("rxDataBufferLength = ");
-              debugPort.println(rxDataBufferLength, HEX);
-              debugPort.print("rxPacketLengthL = ");
-              debugPort.println(rxPacketLengthL);
-              debugPort.print("rxPacketLength[] = ");
-              debugPort.print(rxPacketLength[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketLength[0], HEX);
+              printf();
+              printf("rxConfirmationCode = ");
+              printf("%0#10x",fp.rxConfirmationCode);
+              printf("rxDataBufferLength = ");
+              printf("%0#10x",fp.rxDataBufferLength);
+              printf("rxPacketLengthL = ");
+              printf(fp.rxPacketLengthL);
+              printf("rxPacketLength[] = ");
+              printf("%0#10x",fp.rxPacketLength[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketLength[0]);
             #endif
 
             return FPS_RX_OK; //packet read success
@@ -428,41 +428,41 @@ uint8_t receivePacket (uint32_t timeout) {
 
           else { //if the checksums do not match
             #ifdef FPS_DEBUG
-              debugPort.println("Checksums match fail.");
-              debugPort.print("Received = ");
-              debugPort.print(rxPacketChecksum[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketChecksum[0], HEX);
-              debugPort.print("Received L = " );
-              debugPort.println(rxPacketChecksumL, HEX);
-              debugPort.print("Calculated = ");
-              debugPort.print(byte(tempSum >> 8), HEX);
-              debugPort.print("-");
-              debugPort.println(byte(tempSum & 0xFFU), HEX);
-              debugPort.print("Calculated L = ");
-              debugPort.println(tempSum, HEX);
-              debugPort.print("Received packet = ");
+              printf("Checksums match fail.");
+              printf("Received = ");
+              printf("%0#10x",fp.rxPacketChecksum[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketChecksum[0]);
+              printf("Received L = " );
+              printf("%0#10x",fp.rxPacketChecksumL);
+              printf("Calculated = ");
+              printf"%0#10x",(byte)(tempSum >> 8));
+              printf("-");
+              printf("%0#10x",(byte)(tempSum & 0xFFU));
+              printf("Calculated L = ");
+              printf("%0#10x",tempSum);
+              printf("Received packet = ");
 
               for(int i=0; i < serialBufferLength; i++) {
-                debugPort.print(serialBuffer[i], HEX);
+                printf("%0#10x",serialBuffer[i]);
                 if(i != (serialBufferLength - 1)) {
-                  debugPort.print("-");
+                  printf("-");
                 }
               }
-              debugPort.println();
-              debugPort.print("Data stream = none");
+              printf();
+              printf("Data stream = none");
               
-              debugPort.println();
-              debugPort.print("rxConfirmationCode = ");
-              debugPort.println(rxConfirmationCode, HEX);
-              debugPort.print("rxDataBufferLength = ");
-              debugPort.println(rxDataBufferLength, HEX);
-              debugPort.print("rxPacketLengthL = ");
-              debugPort.println(rxPacketLengthL, HEX);
-              debugPort.print("rxPacketLength[] = ");
-              debugPort.print(rxPacketLength[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketLength[0], HEX);
+              printf();
+              printf("rxConfirmationCode = ");
+              printf("%0#10x",fp.rxConfirmationCode);
+              printf("rxDataBufferLength = ");
+              printf("%0#10x",fp.rxDataBufferLength);
+              printf("rxPacketLengthL = ");
+              printf("%0#10x",fp.rxPacketLengthL);
+              printf("rxPacketLength[] = ");
+              printf("%0#10x",fp.rxPacketLength[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketLength[0]);
             #endif
 
             return FPS_RX_BADPACKET;  //then that's an error
@@ -472,63 +472,63 @@ uint8_t receivePacket (uint32_t timeout) {
 
         //-------------------------------------------------------------------------//
 
-        else if((serialBuffer[token + (rxDataBufferLength-1)] > 0) || ((serialBuffer[token + 1 + (rxDataBufferLength-1)] > 0))) {
-          rxPacketChecksum[0] = serialBuffer[token + 1 + (rxDataBufferLength-1)]; //lower byte
-          rxPacketChecksum[1] = serialBuffer[token + (rxDataBufferLength-1)]; //high byte
-          rxPacketChecksumL = uint16_t(rxPacketChecksum[1] << 8) + rxPacketChecksum[0]; //calculate L value
+        else if((serialBuffer[token + (fp.rxDataBufferLength-1)] > 0) || ((serialBuffer[token + 1 + (fp.rxDataBufferLength-1)] > 0))) {
+          fp.rxPacketChecksum[0] = serialBuffer[token + 1 + (fp.rxDataBufferLength-1)]; //lower byte
+          fp.rxPacketChecksum[1] = serialBuffer[token + (fp.rxDataBufferLength-1)]; //high byte
+          fp.rxPacketChecksumL = (uint16_t)(fp.rxPacketChecksum[1] << 8) + fp.rxPacketChecksum[0]; //calculate L value
 
           uint16_t tempSum = 0; //temp checksum 
 
-          tempSum = rxPacketType + rxPacketLength[0] + rxPacketLength[1] + rxConfirmationCode;
+          tempSum = fp.rxPacketType + fp.rxPacketLength[0] + fp.rxPacketLength[1] + fp.rxConfirmationCode;
 
-          for(int i=0; i < rxDataBufferLength; i++) {
-            tempSum += rxDataBuffer[i]; //calculate data checksum
+          for(int i=0; i < fp.rxDataBufferLength; i++) {
+            tempSum += fp.rxDataBuffer[i]; //calculate data checksum
           }
 
-          if(rxPacketChecksumL == tempSum) { //check if the calculated checksum matches the received one
+          if(fp.rxPacketChecksumL == tempSum) { //check if the calculated checksum matches the received one
             #ifdef FPS_DEBUG
-              debugPort.println("Checksums match success.");
-              debugPort.print("Received = ");
-              debugPort.print(rxPacketChecksum[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketChecksum[0], HEX);
-              debugPort.print("Received L = " );
-              debugPort.println(rxPacketChecksumL, HEX);
-              debugPort.print("Calculated = ");
-              debugPort.print(byte(tempSum >> 8), HEX);
-              debugPort.print("-");
-              debugPort.println(byte(tempSum & 0xFFU), HEX);
-              debugPort.print("Calculated L = ");
-              debugPort.println(tempSum, HEX);
-              debugPort.print("Received packet = ");
+              printf("Checksums match success.");
+              printf("Received = ");
+              printf("%0#10x",fp.rxPacketChecksum[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketChecksum[0]);
+              printf("Received L = " );
+              printf("%0#10x",fp.rxPacketChecksumL);
+              printf("Calculated = ");
+              printf("%0#10x",(byte)(tempSum >> 8));
+              printf("-");
+              printf("%0#10x",(byte)(tempSum & 0xFFU));
+              printf("Calculated L = ");
+              printf("%0#10x",tempSum);
+              printf("Received packet = ");
 
               for(int i=0; i < serialBufferLength; i++) {
-                debugPort.print(serialBuffer[i], HEX);
+                printf("%0#10x",serialBuffer[i]);
                 if(i != (serialBufferLength - 1)) {
-                  debugPort.print("-");
+                  printf("-");
                 }
               }
-              debugPort.println();
-              debugPort.print("Data stream = ");
+              printf("\n");
+              printf("Data stream = ");
 
-              for(int i=0; i < rxDataBufferLength; i++) {
-                debugPort.print(rxDataBuffer[(rxDataBufferLength-1) - i], HEX);
-                if(i != (rxDataBufferLength - 1)) {
-                  debugPort.print("-");
+              for(int i=0; i < fp.rxDataBufferLength; i++) {
+                printf("%0#10x",fp.rxDataBuffer[(fp.rxDataBufferLength-1) - i]);
+                if(i != (fp.rxDataBufferLength - 1)) {
+                  printf("-");
                 }
               }
 
-              debugPort.println();
-              debugPort.print("rxConfirmationCode = ");
-              debugPort.println(rxConfirmationCode, HEX);
-              debugPort.print("rxDataBufferLength = ");
-              debugPort.println(rxDataBufferLength, HEX);
-              debugPort.print("rxPacketLengthL = ");
-              debugPort.println(rxPacketLengthL, HEX);
-              debugPort.print("rxPacketLength[] = ");
-              debugPort.print(rxPacketLength[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketLength[0], HEX);
+              printf();
+              printf("rxConfirmationCode = ");
+              printf("%0#10x",fp.rxConfirmationCode);
+              printf("rxDataBufferLength = ");
+              printf("%0#10x",fp.rxDataBufferLength);
+              printf("rxPacketLengthL = ");
+              printf("%0#10x",fp.rxPacketLengthL);
+              printf("rxPacketLength[] = ");
+              printf("%0#10x",fp.rxPacketLength[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketLength[0]);
             #endif
 
             return FPS_RX_OK; //packet read success
@@ -536,48 +536,48 @@ uint8_t receivePacket (uint32_t timeout) {
 
           else { //if the checksums do not match
             #ifdef FPS_DEBUG
-              debugPort.println("Checksums match fail.");
-              debugPort.print("Received = ");
-              debugPort.print(rxPacketChecksum[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketChecksum[0], HEX);
-              debugPort.print("Received L = " );
-              debugPort.println(rxPacketChecksumL, HEX);
-              debugPort.print("Calculated = ");
-              debugPort.print(byte(tempSum >> 8), HEX);
-              debugPort.print("-");
-              debugPort.println(byte(tempSum & 0xFFU), HEX);
-              debugPort.print("Calculated L = ");
-              debugPort.println(tempSum, HEX);
-              debugPort.print("Received packet = ");
+              printf("Checksums match fail.");
+              printf("Received = ");
+              printf("%0#10x",fp.rxPacketChecksum[1]);
+              printf("-");
+              printf("%0#10x",fp.rxPacketChecksum[0]);
+              printf("Received L = " );
+              printf("%0#10x",fp.rxPacketChecksumL);
+              printf("Calculated = ");
+              printf("%0#10x",(byte)(tempSum >> 8));
+              printf("-");
+              printf("%0#10x",(byte)(tempSum & 0xFFU));
+              printf("Calculated L = ");
+              printf("%0#10x",tempSum);
+              printf("Received packet = ");
 
               for(int i=0; i < serialBufferLength; i++) {
-                debugPort.print(serialBuffer[i], HEX);
+                printf("%0#10x",serialBuffer[i]);
                 if(i != (serialBufferLength - 1)) {
-                  debugPort.print("-");
+                  printf("-");
                 }
               }
-              debugPort.println();
-              debugPort.print("Data stream = ");
+              printf("\n");
+              printf("Data stream = ");
 
-              for(int i=0; i < rxDataBufferLength; i++) {
-                debugPort.print(rxDataBuffer[(rxDataBufferLength-1) - i], HEX);
+              for(int i=0; i < fp.rxDataBufferLength; i++) {
+                printf("%0#10x",rxDataBuffer[(rxDataBufferLength-1) - i]);
                 if(i != (rxDataBufferLength - 1)) {
-                  debugPort.print("-");
+                  printf("-");
                 }
               }
               
-              debugPort.println();
-              debugPort.print("rxConfirmationCode = ");
-              debugPort.println(rxConfirmationCode, HEX);
-              debugPort.print("rxDataBufferLength = ");
-              debugPort.println(rxDataBufferLength, HEX);
-              debugPort.print("rxPacketLengthL = ");
-              debugPort.println(rxPacketLengthL, HEX);
-              debugPort.print("rxPacketLength[] = ");
-              debugPort.print(rxPacketLength[1], HEX);
-              debugPort.print("-");
-              debugPort.println(rxPacketLength[0], HEX);
+              printf();
+              printf("rxConfirmationCode = ");
+              printf("%0#10x",rxConfirmationCode);
+              printf("rxDataBufferLength = ");
+              printf("%0#10x",rxDataBufferLength);
+              printf("rxPacketLengthL = ");
+              printf("%0#10x",rxPacketLengthL);
+              printf("rxPacketLength[] = ");
+              printf("%0#10x",rxPacketLength[1]);
+              printf("-");
+              printf("%0#10x",rxPacketLength[0]);
             #endif
 
             return FPS_RX_BADPACKET;  //then that's an error
@@ -589,15 +589,15 @@ uint8_t receivePacket (uint32_t timeout) {
 
         else { //if the checksum received is 0
           #ifdef FPS_DEBUG
-            debugPort.println("Error at 12 : Checksum");
-            debugPort.print("Received packet = ");
+            printf("Error at 12 : Checksum");
+            printf("Received packet = ");
             for(int i=0; i < serialBufferLength; i++) {
-              debugPort.print(serialBuffer[i], HEX);
+              printf("%0#10x",serialBuffer[i]);
               if(i != (serialBufferLength - 1)) {
-                debugPort.print("-");
+                printf("-");
               }
             }
-            debugPort.println();
+            printf("\n");
           #endif
 
           return FPS_RX_BADPACKET;  //that too an error

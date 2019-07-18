@@ -62,28 +62,28 @@ void resetParameters (void) {
 
 uint8_t sendPacket (uint8_t type, uint8_t command, uint8_t* data, uint16_t dataLength) {
   if(data != NULL) {  //sometimes there's no additional data except the command
-    txDataBuffer = data;
-    txDataBufferLength = dataLength;
+    fp.txDataBuffer = data;
+    fp.txDataBufferLength = dataLength;
   }
   else {
-    txDataBuffer = NULL;
-    txDataBufferLength = 0;
+    fp.txDataBuffer = NULL;
+    fp.txDataBufferLength = 0;
   }
 
-  txPacketType = type; //type of packet - 1 byte
-  txInstructionCode = command; //instruction code - 1 byte
-  txPacketLengthL = txDataBufferLength + 3; //1 byte for command, 2 bytes for checksum
-  txPacketLength[0] = txPacketLengthL & 0xFFU; //get lower byte
-  txPacketLength[1] = (txPacketLengthL >> 8) & 0xFFU; //get high byte
+  fp.txPacketType = type; //type of packet - 1 byte
+  fp.txInstructionCode = command; //instruction code - 1 byte
+  fp.txPacketLengthL = fp.txDataBufferLength + 3; //1 byte for command, 2 bytes for checksum
+  fp.txPacketLength[0] = fp.txPacketLengthL & 0xFFU; //get lower byte
+  fp.txPacketLength[1] = (fp.txPacketLengthL >> 8) & 0xFFU; //get high byte
 
-  txPacketChecksumL = txPacketType + txPacketLength[0] + txPacketLength[1] + txInstructionCode; //sum of packet ID and packet length bytes
+  fp.txPacketChecksumL = fp.txPacketType + fp.txPacketLength[0] + fp.txPacketLength[1] + fp.txInstructionCode; //sum of packet ID and packet length bytes
 
-  for(int i=0; i<txDataBufferLength; i++) {
-    txPacketChecksumL += txDataBuffer[i]; //add rest of the data bytes
+  for(int i=0; i<fp.txDataBufferLength; i++) {
+    fp.txPacketChecksumL += txDataBuffer[i]; //add rest of the data bytes
   }
 
-  txPacketChecksum[0] = txPacketChecksumL & 0xFFU; //get low byte
-  txPacketChecksum[1] = (txPacketChecksumL >> 8) & 0xFFU; //get high byte
+  fp.txPacketChecksum[0] = fp.txPacketChecksumL & 0xFFU; //get low byte
+  fp.txPacketChecksum[1] = (fp.txPacketChecksumL >> 8) & 0xFFU; //get high byte
 
   serialPrintf(fp.fd,,"%d",fp.startCode[1]); //high byte is sent first
   serialPrintf(fp.fd,,"%d",fp.startCode[0]);
@@ -561,23 +561,23 @@ uint8_t receivePacket (uint32_t timeout) {
               printf("Data stream = ");
 
               for(int i=0; i < fp.rxDataBufferLength; i++) {
-                printf("%0#10x",rxDataBuffer[(rxDataBufferLength-1) - i]);
-                if(i != (rxDataBufferLength - 1)) {
+                printf("%0#10x",fp.rxDataBuffer[(fp.rxDataBufferLength-1) - i]);
+                if(i != (fp.rxDataBufferLength - 1)) {
                   printf("-");
                 }
               }
               
               printf();
               printf("rxConfirmationCode = ");
-              printf("%0#10x",rxConfirmationCode);
+              printf("%0#10x",fp.rxConfirmationCode);
               printf("rxDataBufferLength = ");
-              printf("%0#10x",rxDataBufferLength);
+              printf("%0#10x",fp.rxDataBufferLength);
               printf("rxPacketLengthL = ");
-              printf("%0#10x",rxPacketLengthL);
+              printf("%0#10x",fp.rxPacketLengthL);
               printf("rxPacketLength[] = ");
-              printf("%0#10x",rxPacketLength[1]);
+              printf("%0#10x",fp.rxPacketLength[1]);
               printf("-");
-              printf("%0#10x",rxPacketLength[0]);
+              printf("%0#10x",fp.rxPacketLength[0]);
             #endif
 
             return FPS_RX_BADPACKET;  //then that's an error
@@ -610,3 +610,46 @@ uint8_t receivePacket (uint32_t timeout) {
     token++; //increment to progressively scan the packet
   }
 }
+
+uint8_t verifyPassword (uint32_t password) {
+  uint8_t passwordArray[4] = {0};
+  passwordArray[0] = password & 0xFFU;
+  passwordArray[1] = (password >> 8) & 0xFFU;
+  passwordArray[2] = (password >> 16) & 0xFFU;
+  passwordArray[3] = (password >> 24) & 0xFFU;
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_VERIFYPASSWORD, passwordArray, 4); //send the command and data
+  uint8_t response = receivePacket(); //read response
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) {
+      fp.devicePasswordL = password;
+      fp.devicePassword[0] = passwordArray[0]; //save the new password as array
+      fp.devicePassword[1] = passwordArray[1];
+      fp.devicePassword[2] = passwordArray[2];
+      fp.devicePassword[3] = passwordArray[3];
+
+      #ifdef FPS_DEBUG
+        printf("Password is correct.");
+        printf("Current Password = ");
+        printf("%0#10x",fp.devicePasswordL);
+      #endif
+
+      return FPS_RESP_OK; //password is correct
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Password is not correct.");
+        printf("Current Password = ");
+        printf("%0#10x",fp.devicePasswordL);
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+
+      return fc.rxConfirmationCode;  //password is not correct and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+

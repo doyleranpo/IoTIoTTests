@@ -653,3 +653,83 @@ uint8_t verifyPassword (uint32_t password) {
   }
 }
 
+uint8_t setPassword (uint32_t password) {
+  uint8_t passwordArray[4] = {0};
+  passwordArray[0] = password & 0xFFU;
+  passwordArray[1] = (password >> 8) & 0xFFU;
+  passwordArray[2] = (password >> 16) & 0xFFU;
+  passwordArray[3] = (password >> 24) & 0xFFU;
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SETPASSWORD, passwordArray, 4); //send the command and data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confrim code will be saved when the response is received
+      fp.devicePasswordL = password; //save the new password (Long)
+      fp.devicePassword[0] = passwordArray[0]; //save the new password as array
+      fp.devicePassword[1] = passwordArray[1];
+      fp.devicePassword[2] = passwordArray[2];
+      fp.devicePassword[3] = passwordArray[3];
+
+      #ifdef FPS_DEBUG
+        printf("New password = ");
+        printf("%0#10x",fp.devicePasswordL);
+      #endif
+
+      return FPS_RESP_OK; //password setting complete
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Setting password failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+uint8_t setAddress (uint32_t address) {
+  uint8_t addressArray[4] = {0}; //just so that we do not need to alter the existing address before successfully changing it
+  addressArray[0] = address & 0xFF;
+  addressArray[1] = (address >> 8) & 0xFF;
+  addressArray[2] = (address >> 16) & 0xFF;
+  addressArray[3] = (address >> 24) & 0xFF;
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SETDEVICEADDRESS, addressArray, 4); //send the command and data
+
+  fp.deviceAddressL = address; //save the new address (Long)
+  fp.deviceAddress[0] = addressArray[0]; //save the new address as array
+  fp.deviceAddress[1] = addressArray[1];
+  fp.deviceAddress[2] = addressArray[2];
+  fp.deviceAddress[3] = addressArray[3];
+
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if((fp.rxConfirmationCode == FPS_RESP_OK) || (fp.rxConfirmationCode == 0x20U)) { //the confrim code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Setting address success.");
+        printf("New address = ");
+        printf("%0#10x",fp.deviceAddressL);
+      #endif
+
+      return FPS_RESP_OK; //address setting complete
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Setting address failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+

@@ -825,3 +825,58 @@ uint8_t setSecurityLevel (uint8_t level) {
     return FPS_BAD_VALUE; //the received parameter is invalid
   }
 }
+
+uint8_t R30X_Fingerprint::setDataLength (uint16_t length) {
+   #ifdef FPS_DEBUG
+    printf("Setting new data length..");
+  #endif
+
+  uint8_t dataArray[2] = {0};
+
+  if((length == 32) || (length == 64) || (length == 128) || (length == 256)) { //should be 32, 64, 128 or 256 bytes
+    if(length == 32)
+      dataArray[0] = 0;  //low byte
+    else if(length == 64)
+      dataArray[0] = 1;  //low byte
+    else if(length == 128)
+      dataArray[0] = 2;  //low byte
+    else if(length == 256)
+      dataArray[0] = 3;  //low byte
+
+    dataArray[1] = 6; //the code for the system parameter number
+    sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SETSYSPARA, dataArray, 2); //send the command and data
+    uint8_t response = receivePacket(); //read response
+
+    if(response == FPS_RX_OK) { //if the response packet is valid
+      if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+        fp.dataPacketLength = length;  //save the new data length
+
+        #ifdef FPS_DEBUG
+          printf("Setting data length success.");
+          printf("dataPacketLength = ");
+          printf("%d",fp.dataPacketLength);
+        #endif
+
+        return FPS_RESP_OK; //length setting complete
+      }
+      else {
+        #ifdef FPS_DEBUG
+          printf("Setting data length failed.");
+          printf("rxConfirmationCode = ");
+          printf("%0#10x",fp.rxConfirmationCode);
+        #endif
+        return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+      }
+    }
+    else {
+      return response; //return packet receive error code
+    }
+  }
+  else {
+    #ifdef FPS_DEBUG
+      printf("Bad data length value.");
+      printf("Setting data length failed.");
+    #endif
+    return FPS_BAD_VALUE; //the received parameter is invalid
+  }
+}

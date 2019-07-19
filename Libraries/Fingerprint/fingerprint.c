@@ -1009,3 +1009,708 @@ uint8_t getTemplateCount() {
     return response; //return packet receive error code
   }
 }
+
+uint8_t captureAndRangeSearch (uint16_t captureTimeout, uint16_t startLocation, uint16_t count) {
+  if(captureTimeout > 25500) { //if range overflows
+    #ifdef FPS_DEBUG
+      printf("Capture and range search failed.");
+      printf("Bad capture timeout.");
+      printf("captureTimeout = ");
+      printf("%d",captureTimeout);
+    #endif
+    return FPS_BAD_VALUE;
+  }
+
+  if((startLocation > 1000) || (startLocation < 1)) { //if not in range (0-999)
+    #ifdef FPS_DEBUG
+      printf("Capture and range search failed.");
+      printf("Bad start ID");
+      printf("startId = #");
+      printf("%d",startLocation);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+
+  if((startLocation + count) > 1001) { //if range overflows
+    #ifdef FPS_DEBUG
+      printf("Capture and range search failed.");
+      printf("startLocation + count can't be greater than 1001.");
+      printf("startLocation = #");
+      printf("%d",startLocation);
+      printf("count = ");
+      printf("%d",count);
+      printf("startLocation + count = ");
+      printf("%d",startLocation + count);
+    #endif
+    return FPS_BAD_VALUE;
+  }
+
+  uint8_t dataArray[5] = {0}; //need 5 bytes here
+
+  //generate the data array
+  dataArray[4] = (uint8_t)(captureTimeout / 140);  //this byte is sent first
+  dataArray[3] = ((startLocation-1) >> 8) & 0xFFU;  //high byte
+  dataArray[2] = (uint8_t)((startLocation-1) & 0xFFU);  //low byte
+  dataArray[1] = (count >> 8) & 0xFFU; //high byte
+  dataArray[0] = (uint8_t)(count & 0xFFU); //low byte
+
+  #ifdef FPS_DEBUG
+    printf("Starting capture and range search.");
+    printf("captureTimeout = ");
+    printf("%d",captureTimeout);
+    printf("startLocation = #");
+    printf("%d",startLocation);
+    printf("count = ");
+    printf("%d",count);
+    printf("startLocation + count = ");
+    printf("%d",startLocation + count);
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_GETANDRANGESEARCH, dataArray, 5); //send the command, there's no additional data
+  uint8_t response = receivePacket(captureTimeout + 100); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      fp.fingerId = (uint16_t)(fp.rxDataBuffer[3] << 8) + fp.rxDataBuffer[2];  //high byte + low byte
+      fp.fingerId += 1;  //because IDs start from #1
+      fp.matchScore = (uint16_t)(fp.rxDataBuffer[1] << 8) + fp.rxDataBuffer[0];  //data length will be 4 here
+
+      #ifdef FPS_DEBUG
+        printf("Capture and range search success.");
+        printf("fingerId = #");
+        printf("%d",fp.fingerId);
+        printf("matchScore = ");
+        printf("%d",fp.matchScore);
+      #endif
+
+      return FPS_RESP_OK;
+    }
+    else {
+      fp.fingerId = 0;
+      fp.matchScore = 0;
+
+      #ifdef FPS_DEBUG
+        printf("Fingerprint not found.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//scans the fingerprint and finds a match within the full range of library
+
+uint8_t captureAndFullSearch () {
+  #ifdef FPS_DEBUG
+    printf("Starting capture and full search.");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_GETANDFULLSEARCH); //send the command, there's no additional data
+  uint8_t response = receivePacket(3000); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      fp.fingerId = (uint16_t)(fp.rxDataBuffer[3] << 8) + fp.rxDataBuffer[2];  //high byte + low byte
+      fp.fingerId += 1;  //because IDs start from #1
+      fp.matchScore = (uint16_t)(fp.rxDataBuffer[1] << 8) + fp.rxDataBuffer[0];  //data length will be 4 here
+
+      #ifdef FPS_DEBUG
+        printf("Capture and full search success.");
+        printf("fingerId = #");
+        printf("%d",fp.fingerId);
+        printf("matchScore = ");
+        printf("%d",fp.matchScore);
+      #endif
+
+      return FPS_RESP_OK;
+    }
+    else {
+      fp.fingerId = 0;
+      fp.matchScore = 0;
+
+      #ifdef FPS_DEBUG
+        printf("Fingerprint not found.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//scan the fingerprint, generate an image and store it on the buffer
+
+uint8_t generateImage () {
+  #ifdef FPS_DEBUG
+    printf("Generating fingerprint image..");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_GENIMAGE); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Image saved to buffer successfully.");
+      #endif
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Generating fingerprint failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//get the image stored in the image buffer
+//this is not completely implemented
+
+uint8_t downloadImage () {
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_DOWNLOADIMAGE); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//get the image stored in the image buffer
+//this is not completely implemented
+
+uint8_t uploadImage (uint8_t* dataBuffer) {
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_UPLOADIMAGE, dataBuffer, 64); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//generate character file from image stored in image buffer and store it on
+//one of the two character buffers
+
+uint8_t generateCharacter (uint8_t bufferId) {
+  if(!((bufferId > 0) && (bufferId < 3))) { //if the value is not 1 or 2
+    #ifdef FPS_DEBUG
+      printf("Generating character file failed.");
+      printf("Bad value. bufferId can only be 1 or 2.");
+      printf("bufferId = ");
+      printf("%d",bufferId);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+  uint8_t dataBuffer[1] = {bufferId}; //create data array
+
+  #ifdef FPS_DEBUG
+    printf("Generating character file..");
+    printf("Character bufferId = ");
+    printf("%d",bufferId);
+  #endif
+  
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_UPLOADIMAGE, dataBuffer, 1); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Generating character file successful.");
+      #endif
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Generating character file failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+
+        if(fp.rxConfirmationCode == FPS_RESP_OVERDISORDERFAIL2) {
+          printf("Character file overly disordered.");
+        }
+
+        if(fp.rxConfirmationCode == FPS_RESP_FEATUREFAIL) {
+          printf("Character file feature fail.");
+        }
+
+        if(fp.rxConfirmationCode == FPS_RESP_IMAGEGENERATEFAIL) {
+          printf("Valid image not available.");
+        }
+
+      #endif
+
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//combine the two character files and generate a template
+
+uint8_t generateTemplate () {
+  #ifdef FPS_DEBUG
+    printf("Generating template from char buffers..");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_UPLOADIMAGE); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Generating template success.");
+      #endif
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Generating template failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//combine the two character files and generate a template
+//this is not completely implemented
+
+uint8_t R30X_Fingerprint::downloadCharacter (uint8_t bufferId) {
+  uint8_t dataBuffer[1] = {bufferId}; //create data array
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_UPLOADIMAGE); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//combine the two character files and generate a template
+//this is not completely implemented
+
+uint8_t R30X_Fingerprint::uploadCharacter (uint8_t bufferId, uint8_t* dataBuffer) {
+  uint8_t dataArray[sizeof(dataBuffer)+1] = {0}; //create data array
+  dataArray[sizeof(dataBuffer)];
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_UPLOADIMAGE); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//store the contents of one of the two template (character) buffers to a
+//location on the fingerprint library
+
+uint8_t R30X_Fingerprint::saveTemplate (uint8_t bufferId, uint16_t location) {
+  if(!((bufferId > 0) && (bufferId < 3))) { //if the value is not 1 or 2
+    #ifdef FPS_DEBUG
+      printf("Storing template failed.");
+      printf("Bad value. bufferId can only be 1 or 2.");
+      printf("bufferId = ");
+      printf(bufferId);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+
+  if((location > 1000) || (location < 1)) { //if the value is not in range
+    #ifdef FPS_DEBUG
+      printf("Generating template failed.");
+      printf("Bad value. location must be #1 to #1000.");
+      printf("location = ");
+      printf(location);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+
+  #ifdef FPS_DEBUG
+    printf("Saving template..");
+  #endif
+
+  uint8_t dataArray[3] = {0}; //create data array
+  dataArray[2] = bufferId;  //highest byte
+  dataArray[1] = ((location-1) >> 8) & 0xFFU; //high byte of location
+  dataArray[0] = ((location-1) & 0xFFU); //low byte of location
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_STORETEMPLATE, dataArray, 3); //send the command and data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Storing template successful.");
+        printf("Saved to #");
+        printf(location);
+      #endif
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Storing template failed.");
+        printf("rxConfirmationCode = ");
+        printf(rxConfirmationCode, HEX);
+      #endif
+      return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//load the contents from a location on the library to one of the two
+//template/character buffers
+
+uint8_t loadTemplate (uint8_t bufferId, uint16_t location) {
+  if(!((bufferId > 0) && (bufferId < 3))) { //if the value is not 1 or 2
+    #ifdef FPS_DEBUG
+      printf("Loading template failed.");
+      printf("Bad value. bufferId can only be 1 or 2.");
+      printf("bufferId = ");
+      printf("%d",bufferId);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+
+  if((location > 1000) || (location < 1)) { //if the value is not in range
+    #ifdef FPS_DEBUG
+      printf("Loading template failed.");
+      printf("Bad value. location must be #1 to #1000.");
+      printf("location = ");
+      printf("%d",location);
+    #endif
+
+    return FPS_BAD_VALUE;
+  }
+
+  uint8_t dataArray[3] = {0}; //create data array
+  dataArray[2] = bufferId;  //highest byte
+  dataArray[1] = ((location-1) >> 8) & 0xFFU; //high byte of location
+  dataArray[0] = ((location-1) & 0xFFU); //low byte of location
+
+  #ifdef FPS_DEBUG
+    printf("Loading template..");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_LOADTEMPLATE, dataArray, 3); //send the command and data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      #ifdef FPS_DEBUG
+        printf("Loading template successful.");
+        printf("Loaded #");
+        printf("%d",location);
+        printf(" to buffer ");
+        printf("%d",bufferId);
+      #endif
+
+      return FPS_RESP_OK; //just the confirmation code only
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Loading template failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+//=========================================================================//
+//delete templates saved in the library
+
+// uint8_t R30X_Fingerprint::deleteTemplate (uint16_t startLocation, uint16_t count) {
+//   if((startLocation > 1000) || (startLocation < 1)) { //if the value is not 1 or 2
+//     #ifdef FPS_DEBUG
+//       printf("Deleting template failed.");
+//       printf("Bad value. Start location must be #1 to #1000.");
+//       printf("startLocation = ");
+//       printf(startLocation);
+//     #endif
+
+//     return FPS_BAD_VALUE;
+//   }
+
+//   if((count + startLocation) > 1001) { //if the value is not in range
+//     #ifdef FPS_DEBUG
+//       printf("Deleting template failed.");
+//       printf("Bad value. Sum of startLocation and count can't be greater than 1001.");
+//       printf("startLocation + count = ");
+//       printf(startLocation + count);
+//     #endif
+
+//     return FPS_BAD_VALUE;
+//   }
+
+//   uint8_t dataArray[4] = {0}; //create data array
+//   dataArray[3] = ((startLocation-1) >> 8) & 0xFFU; //high byte of location
+//   dataArray[2] = ((startLocation-1) & 0xFFU); //low byte of location
+//   dataArray[1] = (count >> 8) & 0xFFU; //high byte of total no. of templates to delete
+//   dataArray[0] = (count & 0xFFU); //low byte of count
+
+//   #ifdef FPS_DEBUG
+//     printf("Deleting template..");
+//   #endif
+
+//   sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_DELETETEMPLATE, dataArray, 4); //send the command and data
+//   uint8_t response = receivePacket(); //read response
+
+//   if(response == FPS_RX_OK) { //if the response packet is valid
+//     if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+//      #ifdef FPS_DEBUG
+//         printf("Deleting template successful.");
+//         printf("From #");
+//         printf(startLocation);
+//         printf(" to #");
+//         printf(startLocation + count - 1);
+//       #endif
+//       return FPS_RESP_OK; //just the confirmation code only
+//     }
+//     else {
+//       #ifdef FPS_DEBUG
+//         printf("Deleting template failed.");
+//         printf("rxConfirmationCode = ");
+//         printf(rxConfirmationCode, HEX);
+//       #endif
+//       return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+//     }
+//   }
+//   else {
+//     return response; //return packet receive error code
+//   }
+// }
+
+// //=========================================================================//
+// //deletes all the templates stored in the library
+
+// uint8_t R30X_Fingerprint::clearLibrary () {
+//   #ifdef FPS_DEBUG
+//     printf("Clearing library..");
+//   #endif
+
+//   sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_CLEARLIBRARY); //send the command
+//   uint8_t response = receivePacket(); //read response
+
+//   if(response == FPS_RX_OK) { //if the response packet is valid
+//     if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+//       #ifdef FPS_DEBUG
+//         printf("Clearing library success.");
+//       #endif
+//       return FPS_RESP_OK; //just the confirmation code only
+//     }
+//     else {
+//       #ifdef FPS_DEBUG
+//         printf("Clearing library failed.");
+//         printf("rxConfirmationCode = ");
+//         printf(rxConfirmationCode, HEX);
+//       #endif
+//       return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+//     }
+//   }
+//   else {
+//     return response; //return packet receive error code
+//   }
+// }
+
+// //=========================================================================//
+// //deletes all the templates stored in the library
+
+// uint8_t R30X_Fingerprint::matchTemplates () {
+//   #ifdef FPS_DEBUG
+//     printf("Matching templates..");
+//   #endif
+
+//   sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_MATCHTEMPLATES); //send the command
+//   uint8_t response = receivePacket(); //read response
+
+//   if(response == FPS_RX_OK) { //if the response packet is valid
+//     if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+//       #ifdef FPS_DEBUG
+//         printf("Matching templates success.");
+//       #endif
+
+//       matchScore = uint16_t(rxDataBuffer[1] << 8) + rxDataBuffer[0];
+//       return FPS_RESP_OK; //just the confirmation code only
+//     }
+//     else {
+//       #ifdef FPS_DEBUG
+//         printf("The templates do no match.");
+//         printf("rxConfirmationCode = ");
+//         printf(rxConfirmationCode, HEX);
+//       #endif
+//       return rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+//     }
+//   }
+//   else {
+//     return response; //return packet receive error code
+//   }
+// }
+
+// //=========================================================================//
+// //searches the contents of one of the two char buffers for a match on the
+// //fingerprint library throughout a range
+
+// uint8_t R30X_Fingerprint::searchLibrary (uint8_t bufferId, uint16_t startLocation, uint16_t count) {
+//   if(!((bufferId > 0) && (bufferId < 3))) { //if the value is not 1 or 2
+//     #ifdef FPS_DEBUG
+//       printf("Searching library failed.");
+//       printf("Bad value. bufferId can only be 1 or 2.");
+//       printf("bufferId = ");
+//       printf(bufferId);
+//     #endif
+//     return FPS_BAD_VALUE;
+//   }
+
+//   if((startLocation > 1000) || (startLocation < 1)) { //if not in range (0-999)
+//     #ifdef FPS_DEBUG
+//       printf("Searching library failed.");
+//       printf("Bad start ID");
+//       printf("startId = #");
+//       printf(startLocation);
+//     #endif
+//     return FPS_BAD_VALUE;
+//   }
+
+//   if((startLocation + count) > 1001) { //if range overflows
+//     #ifdef FPS_DEBUG
+//       printf("Searching library failed.");
+//       printf("startLocation + count can't be greater than 1001.");
+//       printf("startLocation = #");
+//       printf(startLocation);
+//       printf("count = ");
+//       printf(count);
+//       printf("startLocation + count = ");
+//       printf(startLocation + count);
+//     #endif
+//     return FPS_BAD_VALUE;
+//   }
+
+//   uint8_t dataArray[5] = {0};
+//   dataArray[4] = bufferId;
+//   dataArray[3] = (startLocation >> 8) & 0xFFU;  //high byte
+//   dataArray[2] = (startLocation & 0xFFU); //low byte
+//   dataArray[1] = (count >> 8) & 0xFFU; //high byte
+//   dataArray[0] = (count & 0xFFU); //low byte
+
+//   #ifdef FPS_DEBUG
+//     printf("Starting searching library for buffer content.");
+//     printf("bufferId = ");
+//     printf(bufferId);
+//     printf("startLocation = #");
+//     printf(startLocation);
+//     printf("count = ");
+//     printf(count);
+//     printf("startLocation + count = ");
+//     printf(startLocation + count);
+//   #endif
+
+//   sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SEARCHLIBRARY, dataArray, 5); //send the command
+//   uint8_t response = receivePacket(); //read response
+
+//   if(response == FPS_RX_OK) { //if the response packet is valid
+//     if(rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+//       fingerId = uint16_t(rxDataBuffer[3] << 8) + rxDataBuffer[2];  //add high byte and low byte
+//       fingerId += 1;  //because IDs start from #1
+//       matchScore = uint16_t(rxDataBuffer[1] << 8) + rxDataBuffer[0];  //add high byte and low byte
+      
+//       #ifdef FPS_DEBUG
+//         printf("Buffer content found in library.");
+//         printf("fingerId = #");
+//         printf(fingerId);
+//         printf("matchScore = ");
+//         printf(matchScore);
+//       #endif
+
+//       return FPS_RESP_OK; //just the confirmation code only
+//     }
+//     else {
+//       //fingerId = 0 doesn't mean the match was found at location 0
+//       //instead it means an error. check the confirmation code to determine the problem
+//       fingerId = 0;
+//       matchScore = 0;
+
+//       #ifdef FPS_DEBUG
+//         printf("Fingerprint not found.");
+//         printf("rxConfirmationCode = ");
+//         printf(rxConfirmationCode, HEX);
+//       #endif
+      
+//       return rxConfirmationCode;
+//     }
+//   }
+//   else {
+//     return response; //return packet receive error code
+//   }
+// }

@@ -780,3 +780,48 @@ uint8_t setBaudrate (uint32_t baud) {
   }
 }
 
+uint8_t setSecurityLevel (uint8_t level) {
+  uint8_t dataArray[2] = {0};
+
+  if((level > 0) && (level < 6)) { //should be between 1 and 5
+    dataArray[0] = level;  //low byte
+    dataArray[1] = 5; //the code for the system parameter number, 5 means security level
+
+    sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_SETSYSPARA, dataArray, 2); //send the command and data
+    uint8_t response = receivePacket(); //read response
+
+    if(response == FPS_RX_OK) { //if the response packet is valid
+      if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+        #ifdef FPS_DEBUG
+          printf("Setting new security level success.");
+          printf("Old value = ");
+          printf("%0#10x",fp.securityLevel);
+          printf("New value = ");
+          printf("%0#10x",level);
+        #endif
+        fp.securityLevel = level;  //save new value
+        return FPS_RESP_OK; //security level setting complete
+      }
+      else {
+        #ifdef FPS_DEBUG
+          printf("Setting security level failed.");
+          printf("Current value = ");
+          printf("%0#10x",fp.securityLevel);
+          printf("rxConfirmationCode = ");
+          printf("%0#10x",fp.rxConfirmationCode);
+        #endif
+        return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+      }
+    }
+    else {
+      return response; //return packet receive error code
+    }
+  }
+  else {
+    #ifdef FPS_DEBUG
+      printf("Bad security level value.");
+      printf("Setting security level failed.");
+    #endif
+    return FPS_BAD_VALUE; //the received parameter is invalid
+  }
+}

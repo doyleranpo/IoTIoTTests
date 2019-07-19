@@ -25,7 +25,7 @@ void begin (uint32_t baudrate) {
   delay(1000);  //one second delay to let the sensor 'boot up'
 
   fp.deviceBaudrate = baudrate;  //save the new baudrate
-  fp.fd = serialOpen(baudrate);
+  fp.fd = serialOpen("/dev/tty*",baudrate);
 }
 
 void resetParameters (void) {

@@ -880,3 +880,132 @@ uint8_t R30X_Fingerprint::setDataLength (uint16_t length) {
     return FPS_BAD_VALUE; //the received parameter is invalid
   }
 }
+
+uint8_t portControl (uint8_t value) {
+  #ifdef FPS_DEBUG
+    if(value == 1)
+      printf("Turing port on..");
+    else
+      printf("Turing port off..");
+  #endif
+
+  uint8_t dataArray[1] = {0};
+
+  if((value == 0) || (value == 1)) { //should be either 1 or 0
+    dataArray[0] = value;
+    sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_PORTCONTROL, dataArray, 1); //send the command and data
+    uint8_t response = receivePacket(); //read response
+
+    if(response == FPS_RX_OK) { //if the response packet is valid
+      if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+        #ifdef FPS_DEBUG
+          if(value == 1)
+            printf("Turing port on success.");
+          else
+            printf("Turing port off success.");
+        #endif
+        return FPS_RESP_OK; //port setting complete
+      }
+      else {
+        #ifdef FPS_DEBUG
+          printf("Turning port on/off failed.");
+          printf("rxConfirmationCode = ");
+          printf("%0#10x",fp.rxConfirmationCode);
+        #endif
+        return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+      }
+    }
+    else {
+      return response; //return packet receive error code
+    }
+  }
+  else {
+    return FPS_BAD_VALUE; //the received parameter is invalid
+  }
+}
+
+uint8_t readSysPara() {
+  #ifdef FPS_DEBUG
+    printf("Reading system parameters..");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_READSYSPARA); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      fp.statusRegister = uint16_t(fp.rxDataBuffer[15] << 8) + fp.rxDataBuffer[14];  //high byte + low byte
+      fp.securityLevel = dp.rxDataBuffer[8];
+
+      if(fp.rxDataBuffer[2] == 0)
+        fp.dataPacketLength = 32;
+      else if(rxDataBuffer[2] == 1)
+        fp.dataPacketLength = 64;
+      else if(rxDataBuffer[2] == 2)
+        fp.dataPacketLength = 128;
+      else if(rxDataBuffer[2] == 3)
+        fp.dataPacketLength = 256;
+
+      fp.deviceBaudrate = fp.rxDataBuffer[0] * 9600;  //baudrate is retrieved as a number
+
+      #ifdef FPS_DEBUG
+        printf("Reading system parameters success.");
+        printf("statusRegister = ");
+        printf("%d",fp.statusRegister);
+        printf("securityLevel = ");
+        printf("%d",fp.securityLevel);
+        printf("dataPacketLength = ");
+        printf("%d",fp.dataPacketLength);
+        printf("deviceBaudrate = ");
+        printf("%d",fp.deviceBaudrate);
+      #endif
+
+      return FPS_RESP_OK;
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Reading system parameters failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}
+
+uint8_t getTemplateCount() {
+  #ifdef FPS_DEBUG
+    printf("Reading template count..");
+  #endif
+
+  sendPacket(FPS_ID_COMMANDPACKET, FPS_CMD_TEMPLATECOUNT); //send the command, there's no additional data
+  uint8_t response = receivePacket(); //read response
+
+  if(response == FPS_RX_OK) { //if the response packet is valid
+    if(fp.rxConfirmationCode == FPS_RESP_OK) { //the confirm code will be saved when the response is received
+      fp.templateCount = (uint16_t)(fp.rxDataBuffer[1] << 8) + fp.rxDataBuffer[0];  //high byte + low byte
+
+      #ifdef FPS_DEBUG
+        printf("Reading template count success.");
+        printf("templateCount = ");
+        printf("%d",fp.templateCount);
+      #endif
+
+      return FPS_RESP_OK;
+    }
+    else {
+      #ifdef FPS_DEBUG
+        printf("Reading template count failed.");
+        printf("rxConfirmationCode = ");
+        printf("%0#10x",fp.rxConfirmationCode);
+      #endif
+      return fp.rxConfirmationCode;  //setting was unsuccessful and so send confirmation code
+    }
+  }
+  else {
+    return response; //return packet receive error code
+  }
+}

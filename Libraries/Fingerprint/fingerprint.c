@@ -1,6 +1,6 @@
 #include "fingerprint.h"
 
-R30X fp;
+struct R30X fp;
 
 void init (uint32_t password, uint32_t address){
     fp.devicePassword[0] = password & 0xFFU; //these can be altered later

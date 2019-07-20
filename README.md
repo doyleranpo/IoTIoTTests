@@ -6,8 +6,10 @@ ___
 * Light Blocking/ Photo Interrupter Sensor
 * Ultrasonic Sensor
 * Small Sound Sensor
+* Acceleromter 
+* ESP8266 Wi-Fi Module
 
 ### To be added
 ___
-* Acceleromter 
-* ESP8266 Wi-Fi Module
+
+* R30X Fingerprint Sensor

@@ -147,6 +147,8 @@ uint8_t sendPacket (uint8_t type, uint8_t command, uint8_t* data, uint16_t dataL
 }
 
 uint8_t receivePacket (uint32_t timeout) {
+  if( timeout == NULL)
+    timeout = FPS_DEFAULT_TIMEOUT;
   uint8_t* dataBuffer;
   if(dataPacketLength < 64) { //data buffer length should be at least 64 bytes
     dataBuffer = new uint8_t[64](); //conatains only the data
@@ -607,6 +609,8 @@ uint8_t receivePacket (uint32_t timeout) {
 }
 
 uint8_t verifyPassword (uint32_t password) {
+  if (password == NULL)
+    password = FPS_DEFAULT_PASSWORD;
   uint8_t passwordArray[4] = {0};
   passwordArray[0] = password & 0xFFU;
   passwordArray[1] = (password >> 8) & 0xFFU;
@@ -688,6 +692,8 @@ uint8_t setPassword (uint32_t password) {
 }
 
 uint8_t setAddress (uint32_t address) {
+  if (address == NULL)
+    address  = FPS_DEFAULT_ADDRESS;
   uint8_t addressArray[4] = {0}; //just so that we do not need to alter the existing address before successfully changing it
   addressArray[0] = address & 0xFF;
   addressArray[1] = (address >> 8) & 0xFF;

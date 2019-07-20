@@ -172,15 +172,15 @@ struct R30X {
 void init(uint32_t password, uint32_t address);
 void begin (uint32_t baud); //initializes the communication port
 void resetParameters (void); //initialize and reset and all parameters
-uint8_t verifyPassword (uint32_t password = FPS_DEFAULT_PASSWORD); //verify the user supplied password
+uint8_t verifyPassword (uint32_t password ); //verify the user supplied password
 uint8_t setPassword (uint32_t password);  //set FPS password
-uint8_t setAddress (uint32_t address = FPS_DEFAULT_ADDRESS);  //set FPS address
+uint8_t setAddress (uint32_t address);  //set FPS address
 uint8_t setBaudrate (uint32_t baud);  //set UART baudrate, default is 57000
 uint8_t setSecurityLevel (uint8_t level); //set the threshold for fingerprint matching
 uint8_t setDataLength (uint16_t length); //set the max length of data in a packet
 uint8_t portControl (uint8_t value);  //turn the comm port on or off
-uint8_t sendPacket (uint8_t type, uint8_t command, uint8_t* data = NULL, uint16_t dataLength = 0); //assemble and send packets to FPS
-uint8_t receivePacket (uint32_t timeout=FPS_DEFAULT_TIMEOUT); //receive packet from FPS
+uint8_t sendPacket (uint8_t type, uint8_t command, uint8_t* data, uint16_t dataLength = 0); //assemble and send packets to FPS
+uint8_t receivePacket (uint32_t timeout); //receive packet from FPS
 uint8_t readSysPara (void); //read FPS system configuration
 uint8_t captureAndRangeSearch (uint16_t captureTimeout, uint16_t startId, uint16_t count); //scan a finger and search a range of locations
 uint8_t captureAndFullSearch (void);  //scan a finger and search the entire library
